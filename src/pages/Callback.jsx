@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { userManager } from "./auth";
+import { userManager } from "../auth/auth";
 
 export default function Callback() {
   const [message, setMessage] = useState("Completing sign-in...");

@@ -20,7 +20,5 @@ export const userManager = new UserManager({
 
 export const authConfig = {
   authority,
-  clientId,
-  redirectUri,
   postLogoutRedirectUri
 };
