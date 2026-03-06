@@ -6,9 +6,7 @@ export default function Callback() {
   const handledRef = useRef(false);
 
   useEffect(() => {
-    if (handledRef.current) {
-      return;
-    }
+    if (handledRef.current) return;
     handledRef.current = true;
 
     userManager

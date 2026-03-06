@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { userManager } from "./auth";
+import { userManager, authConfig } from "./auth";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -19,21 +19,29 @@ export default function App() {
       });
   }, []);
 
-  const login = async () => {
+  const loginWithGoogle = async () => {
     setError("");
     try {
-      await userManager.signinRedirect();
+      await userManager.signinRedirect({
+        extraQueryParams: {
+          sso_provider: "Google",
+          prompt: "login",
+          display: "page"
+        }
+      });
     } catch (e) {
       console.error(e);
-      setError("Login redirect failed.");
+      setError("Google SSO redirect failed.");
     }
   };
 
   const logout = async () => {
     try {
       await userManager.removeUser();
-      setUser(null);
-      window.location.href = "/";
+      const logoutUrl =
+        `${authConfig.authority}/secur/logout.jsp` +
+        `?retUrl=${encodeURIComponent(authConfig.postLogoutRedirectUri)}`;
+      window.location.assign(logoutUrl);
     } catch (e) {
       console.error(e);
       setError("Logout failed.");
@@ -46,14 +54,15 @@ export default function App() {
 
       {!user ? (
         <>
-          <p>This app will redirect to Salesforce login, then Google SSO.</p>
-          <button onClick={login}>Login with Salesforce</button>
+          <p>This app redirects directly to Google SSO through Salesforce.</p>
+          <button onClick={loginWithGoogle}>Login with Google SSO</button>
         </>
       ) : (
         <>
           <p><strong>Logged in successfully</strong></p>
           <p>Name: {user.profile.name || "N/A"}</p>
           <p>Email: {user.profile.email || "N/A"}</p>
+          <p>Issuer: {user.profile.iss || "N/A"}</p>
           <pre>{JSON.stringify(user.profile, null, 2)}</pre>
           <button onClick={logout}>Logout</button>
         </>
