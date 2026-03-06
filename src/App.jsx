@@ -1,16 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { userManager, authConfig } from "./auth";
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
+  const loginStartedRef = useRef(false);
 
   useEffect(() => {
     userManager
       .getUser()
-      .then((u) => {
+      .then(async (u) => {
         if (u && !u.expired) {
           setUser(u);
+          return;
+        }
+
+        if (!loginStartedRef.current) {
+          loginStartedRef.current = true;
+          await userManager.signinRedirect({
+            extraQueryParams: {
+              sso_provider: "Google",
+              prompt: "login",
+              display: "page"
+            }
+          });
         }
       })
       .catch((e) => {
@@ -18,22 +31,6 @@ export default function App() {
         setError("Failed to load user session.");
       });
   }, []);
-
-  const loginWithGoogle = async () => {
-    setError("");
-    try {
-      await userManager.signinRedirect({
-        extraQueryParams: {
-          sso_provider: "Google",
-          prompt: "login",
-          display: "page"
-        }
-      });
-    } catch (e) {
-      console.error(e);
-      setError("Google SSO redirect failed.");
-    }
-  };
 
   const logout = async () => {
     try {
@@ -54,8 +51,20 @@ export default function App() {
 
       {!user ? (
         <>
-          <p>This app redirects directly to Google SSO through Salesforce.</p>
-          <button onClick={loginWithGoogle}>Login with Google SSO</button>
+          <p>Redirecting to Google SSO...</p>
+          <button
+            onClick={() =>
+              userManager.signinRedirect({
+                extraQueryParams: {
+                  sso_provider: "Google",
+                  prompt: "login",
+                  display: "page"
+                }
+              })
+            }
+          >
+            Login with Google SSO
+          </button>
         </>
       ) : (
         <>
