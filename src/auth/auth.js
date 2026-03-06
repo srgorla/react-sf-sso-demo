@@ -13,7 +13,7 @@ export const userManager = new UserManager({
   response_type: "code",
   scope: "openid profile email",
   post_logout_redirect_uri: postLogoutRedirectUri,
-  userStore: new WebStorageStateStore({ store: window.localStorage }),
+  userStore: new WebStorageStateStore({ store: window.sessionStorage }),
   automaticSilentRenew: false,
   loadUserInfo: true
 });

@@ -21,7 +21,6 @@ export default function App() {
           await userManager.signinRedirect({
             extraQueryParams: {
               sso_provider: "Google",
-              prompt: "login",
               display: "page"
             }
           });
