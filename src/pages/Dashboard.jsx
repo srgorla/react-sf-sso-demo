@@ -155,6 +155,15 @@ export default function Dashboard({ user, error, mode }) {
                 />
               </div>
 
+              <div className="dashboard-token-box">
+                <div className="dashboard-token-label">ID Token (demo only)</div>
+                <textarea
+                  readOnly
+                  value={user.id_token || ""}
+                  className="dashboard-token-textarea"
+                />
+              </div>
+
               {accounts.length > 0 ? (
                 <div className="dashboard-table-wrapper">
                   <table className="dashboard-table">
