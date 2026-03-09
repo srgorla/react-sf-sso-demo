@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { internalUserManager } from "./auth/internalAuth";
 import { portalAuthConfig } from "./auth/portalAuth";
+import { REACT_ONLY_LOGOUT_MODE_KEY } from "./auth/sessionKeys";
 import Dashboard from "./pages/Dashboard";
 
 const getStoredPortalUser = () => {
@@ -40,7 +41,44 @@ export default function App() {
     mode === "portal" ? getParsedPortalUser() : null
   );
   const [error, setError] = useState("");
+  const [localLogoutMode, setLocalLogoutMode] = useState(
+    () => localStorage.getItem(REACT_ONLY_LOGOUT_MODE_KEY) || ""
+  );
   const loginStartedRef = useRef(false);
+
+  const hasLocalLogoutForCurrentMode = localLogoutMode === mode;
+
+  const startLogin = async (loginMode) => {
+    loginStartedRef.current = true;
+
+    if (loginMode === "internal") {
+      sessionStorage.setItem("login_mode", "internal");
+      await internalUserManager.signinRedirect();
+      return;
+    }
+
+    sessionStorage.setItem("login_mode", "portal");
+
+    const portalUrl =
+      `${portalAuthConfig.oauthInitUrl}` +
+      `?client_id=${encodeURIComponent(portalAuthConfig.clientId)}` +
+      `&redirect_uri=${encodeURIComponent(portalAuthConfig.redirectUri)}` +
+      `&response_type=code`;
+
+    window.location.assign(portalUrl);
+  };
+
+  const handleSignInAgain = async () => {
+    try {
+      localStorage.removeItem(REACT_ONLY_LOGOUT_MODE_KEY);
+      setLocalLogoutMode("");
+      await startLogin(mode);
+    } catch (e) {
+      console.error(e);
+      setError("Failed to start sign-in.");
+      loginStartedRef.current = false;
+    }
+  };
 
   useEffect(() => {
     internalUserManager
@@ -48,39 +86,22 @@ export default function App() {
       .then(async (u) => {
         if (mode === "internal" && u && !u.expired) {
           setUser(u);
+          if (localStorage.getItem(REACT_ONLY_LOGOUT_MODE_KEY) === "internal") {
+            localStorage.removeItem(REACT_ONLY_LOGOUT_MODE_KEY);
+            setLocalLogoutMode("");
+          }
           return;
         }
 
-        if (loginStartedRef.current) return;
-        loginStartedRef.current = true;
+        if (hasLocalLogoutForCurrentMode || loginStartedRef.current) return;
 
-        if (mode === "internal") {
-          sessionStorage.setItem("login_mode", "internal");
-
-          await internalUserManager.signinRedirect({
-            extraQueryParams: {
-              sso_provider: "Google",
-              display: "page"
-            }
-          });
-          return;
-        }
-
-        sessionStorage.setItem("login_mode", "portal");
-
-        const portalUrl =
-          `${portalAuthConfig.oauthInitUrl}` +
-          `?client_id=${encodeURIComponent(portalAuthConfig.clientId)}` +
-          `&redirect_uri=${encodeURIComponent(portalAuthConfig.redirectUri)}` +
-          `&response_type=code`;
-
-        window.location.assign(portalUrl);
+        await startLogin(mode);
       })
       .catch((e) => {
         console.error(e);
         setError("Failed to load user session.");
       });
-  }, [mode]);
+  }, [mode, hasLocalLogoutForCurrentMode]);
 
   return (
     <div
@@ -98,9 +119,33 @@ export default function App() {
           <h1 style={{ fontSize: "48px", marginBottom: "16px" }}>
             React + Salesforce SSO POC
           </h1>
-          <p style={{ fontSize: "22px", color: "#374151" }}>
-            Redirecting to {mode === "portal" ? "Experience Cloud" : "Salesforce"} login...
-          </p>
+
+          {hasLocalLogoutForCurrentMode ? (
+            <>
+              <p style={{ fontSize: "22px", color: "#374151", marginBottom: "20px" }}>
+                You are logged out from React for {mode} mode.
+              </p>
+              <button
+                onClick={handleSignInAgain}
+                style={{
+                  border: "none",
+                  borderRadius: "10px",
+                  background: "#2563eb",
+                  color: "#fff",
+                  padding: "12px 18px",
+                  fontSize: "16px",
+                  cursor: "pointer"
+                }}
+              >
+                Sign In Again
+              </button>
+            </>
+          ) : (
+            <p style={{ fontSize: "22px", color: "#374151" }}>
+              Redirecting to {mode === "portal" ? "Experience Cloud" : "Salesforce"} login...
+            </p>
+          )}
+
           {error && <p style={{ color: "#dc2626" }}>{error}</p>}
         </div>
       ) : (

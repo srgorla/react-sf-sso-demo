@@ -35,6 +35,10 @@ Update `src/auth/internalAuth.js`:
 - `redirectUri`: local callback URL
 - `postLogoutRedirectUri`: local app URL for internal mode
 
+In Salesforce My Domain Authentication Configuration:
+- Enable the login methods you want users to choose from (for example Salesforce username/password and one or more SSO options).
+- Avoid org settings that force immediate redirect to a single Auth Provider if you want users to decide on the login page.
+
 Example authority shape:
 - `https://<my-domain>.my.salesforce.com`
 
@@ -66,6 +70,8 @@ Run local app and validate:
 4. Dashboard loads profile claims
 5. `Fetch Accounts` succeeds with returned token
 6. Both logout actions behave as expected
+   - `Logout React Only` should keep user signed out in the React app (no immediate auto-redirect) until `Sign In Again` is clicked
+   - `Logout React + Salesforce` should end both Salesforce and React sessions
 7. Open a second tab with the same mode and confirm it reuses existing auth session without a new Google prompt (until token expiry/logout)
 
 ## Security Notes

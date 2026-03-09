@@ -6,6 +6,7 @@ import ProgressBar from "../components/ProgressBar";
 import StatTile from "../components/StatTile";
 import { internalAuthConfig, internalUserManager } from "../auth/internalAuth";
 import { portalAuthConfig } from "../auth/portalAuth";
+import { REACT_ONLY_LOGOUT_MODE_KEY } from "../auth/sessionKeys";
 
 export default function Dashboard({ user, error, mode }) {
   const [accounts, setAccounts] = useState([]);
@@ -14,11 +15,28 @@ export default function Dashboard({ user, error, mode }) {
   const userName = user?.profile?.name || "N/A";
   const email = user?.profile?.email || "N/A";
   const issuer = user?.profile?.iss || "N/A";
+  const amrValues = Array.isArray(user?.profile?.amr) ? user.profile.amr : [];
+
+  const authModeLabel =
+    mode === "portal"
+      ? "Experience Cloud SSO"
+      : amrValues.includes("pwd")
+        ? "Salesforce Username/Password"
+        : amrValues.includes("federated")
+          ? "Federated SSO"
+          : "Salesforce Login";
+  const authModeSubtitle =
+    mode === "portal"
+      ? "Brokered through Experience Cloud"
+      : amrValues.length > 0
+        ? `AMR: ${amrValues.join(", ")}`
+        : "From Salesforce internal OIDC flow";
 
   const logoutReactOnly = async () => {
     try {
       await internalUserManager.removeUser();
       localStorage.removeItem("portal_user");
+      localStorage.setItem(REACT_ONLY_LOGOUT_MODE_KEY, mode);
       sessionStorage.removeItem("portal_user");
       sessionStorage.removeItem("login_mode");
       sessionStorage.removeItem("accounts_cache");
@@ -32,6 +50,7 @@ export default function Dashboard({ user, error, mode }) {
     try {
       await internalUserManager.removeUser();
       localStorage.removeItem("portal_user");
+      localStorage.removeItem(REACT_ONLY_LOGOUT_MODE_KEY);
       sessionStorage.removeItem("portal_user");
       sessionStorage.removeItem("login_mode");
       sessionStorage.removeItem("accounts_cache");
@@ -198,8 +217,8 @@ export default function Dashboard({ user, error, mode }) {
               <StatTile title="Identity Source" value="Salesforce" subtitle="OIDC issuer" />
               <StatTile
                 title="Authentication Mode"
-                value="Google SSO"
-                subtitle="Brokered through Salesforce"
+                value={authModeLabel}
+                subtitle={authModeSubtitle}
               />
               <StatTile
                 title="Email Verified"

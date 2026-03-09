@@ -18,7 +18,7 @@ The app then displays user identity claims and uses the access token to call Sal
 2. App resolves mode from querystring (`mode=portal` or default `internal`).
 3. For `internal` mode:
    - App checks existing user via `internalUserManager.getUser()`.
-   - If not authenticated, redirects with `signinRedirect()`.
+   - If not authenticated, redirects with `signinRedirect()` and lets Salesforce present configured login choices (for example username/password or SSO provider).
 4. For `portal` mode:
    - App checks `localStorage.portal_user`.
    - If absent, redirects browser to Experience Cloud `auth/oauth/<provider>` URL.
@@ -42,11 +42,12 @@ The app then displays user identity claims and uses the access token to call Sal
 - Keys used:
   - `login_mode`
   - `portal_user`
+  - `react_only_logout_mode` (blocks auto-login after React-only logout until user clicks sign-in)
   - `accounts_cache` (cleared on logout)
 - Auth session persistence is browser-profile scoped until token expiry or logout.
 
 ## Logout Behavior
-- `Logout React Only`: clears local session data and re-enters selected mode.
+- `Logout React Only`: clears local session data, records `react_only_logout_mode`, and stays on a signed-out screen for that mode until the user clicks `Sign In Again`.
 - `Logout React + Salesforce`: clears local data and sends user to Salesforce logout endpoint with `retUrl`.
 
 ## Data Access Demo
