@@ -3,29 +3,46 @@ import { internalUserManager } from "./auth/internalAuth";
 import { portalAuthConfig } from "./auth/portalAuth";
 import Dashboard from "./pages/Dashboard";
 
-export default function App() {
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState("");
-  const loginStartedRef = useRef(false);
+const getStoredPortalUser = () => {
+  const localUser = localStorage.getItem("portal_user");
+  if (localUser) return localUser;
 
+  // Backward-compatibility: migrate older sessionStorage value once.
+  const sessionUser = sessionStorage.getItem("portal_user");
+  if (sessionUser) {
+    localStorage.setItem("portal_user", sessionUser);
+    sessionStorage.removeItem("portal_user");
+    return sessionUser;
+  }
+
+  return null;
+};
+
+const getParsedPortalUser = () => {
+  const portalUserRaw = getStoredPortalUser();
+  if (!portalUserRaw) return null;
+
+  try {
+    return JSON.parse(portalUserRaw);
+  } catch {
+    localStorage.removeItem("portal_user");
+    sessionStorage.removeItem("portal_user");
+    return null;
+  }
+};
+
+export default function App() {
   const mode =
     new URLSearchParams(window.location.search).get("mode") === "portal"
       ? "portal"
       : "internal";
+  const [user, setUser] = useState(() =>
+    mode === "portal" ? getParsedPortalUser() : null
+  );
+  const [error, setError] = useState("");
+  const loginStartedRef = useRef(false);
 
   useEffect(() => {
-    if (mode === "portal") {
-      const portalUserRaw = sessionStorage.getItem("portal_user");
-      if (portalUserRaw) {
-        try {
-          setUser(JSON.parse(portalUserRaw));
-          return;
-        } catch {
-          sessionStorage.removeItem("portal_user");
-        }
-      }
-    }
-
     internalUserManager
       .getUser()
       .then(async (u) => {

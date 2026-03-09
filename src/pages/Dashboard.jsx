@@ -18,6 +18,7 @@ export default function Dashboard({ user, error, mode }) {
   const logoutReactOnly = async () => {
     try {
       await internalUserManager.removeUser();
+      localStorage.removeItem("portal_user");
       sessionStorage.removeItem("portal_user");
       sessionStorage.removeItem("login_mode");
       sessionStorage.removeItem("accounts_cache");
@@ -30,6 +31,7 @@ export default function Dashboard({ user, error, mode }) {
   const logoutReactAndSalesforce = async () => {
     try {
       await internalUserManager.removeUser();
+      localStorage.removeItem("portal_user");
       sessionStorage.removeItem("portal_user");
       sessionStorage.removeItem("login_mode");
       sessionStorage.removeItem("accounts_cache");

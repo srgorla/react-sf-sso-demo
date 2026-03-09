@@ -16,7 +16,8 @@ export const internalUserManager = new UserManager({
   response_type: "code",
   scope: "openid profile email api id",
   post_logout_redirect_uri: internalAuthConfig.postLogoutRedirectUri,
-  userStore: new WebStorageStateStore({ store: window.sessionStorage }),
+  // localStorage keeps auth state shared across tabs in the same browser profile.
+  userStore: new WebStorageStateStore({ store: window.localStorage }),
   automaticSilentRenew: false,
   loadUserInfo: true
 });

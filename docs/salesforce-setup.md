@@ -66,8 +66,10 @@ Run local app and validate:
 4. Dashboard loads profile claims
 5. `Fetch Accounts` succeeds with returned token
 6. Both logout actions behave as expected
+7. Open a second tab with the same mode and confirm it reuses existing auth session without a new Google prompt (until token expiry/logout)
 
 ## Security Notes
 - Do not commit production client secrets.
 - Keep this demo on localhost-only credentials where possible.
 - Move client IDs and URLs to environment variables before production use.
+- This app now uses `localStorage` for cross-tab session reuse; clear storage on shared machines and keep token lifetimes appropriately short.

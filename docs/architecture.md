@@ -20,13 +20,13 @@ The app then displays user identity claims and uses the access token to call Sal
    - App checks existing user via `internalUserManager.getUser()`.
    - If not authenticated, redirects with `signinRedirect()`.
 4. For `portal` mode:
-   - App checks `sessionStorage.portal_user`.
+   - App checks `localStorage.portal_user`.
    - If absent, redirects browser to Experience Cloud `auth/oauth/<provider>` URL.
 5. Salesforce redirects to `/callback` with auth response.
 6. Callback behavior:
    - `internal`: handled by `signinRedirectCallback()`.
    - `portal`: code is exchanged at Salesforce token endpoint, then user profile is fetched from `id` URL.
-7. App stores session data in `sessionStorage` and renders `Dashboard`.
+7. App stores long-lived user session data in `localStorage` and renders `Dashboard`.
 
 ## Key Files
 - `src/App.jsx`: mode selection + initial redirect logic
@@ -36,12 +36,14 @@ The app then displays user identity claims and uses the access token to call Sal
 - `src/auth/portalAuth.js`: portal auth constants/endpoints
 
 ## Session Model
-- Storage: `window.sessionStorage`
+- Storage:
+  - `window.localStorage` for authenticated user session (`oidc-client-ts` user + `portal_user`) so sessions are shared across tabs.
+  - `window.sessionStorage` for transient flow state (`login_mode`, `accounts_cache`).
 - Keys used:
   - `login_mode`
   - `portal_user`
   - `accounts_cache` (cleared on logout)
-- Token persistence is browser-session scoped.
+- Auth session persistence is browser-profile scoped until token expiry or logout.
 
 ## Logout Behavior
 - `Logout React Only`: clears local session data and re-enters selected mode.

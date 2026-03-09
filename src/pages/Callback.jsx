@@ -74,7 +74,9 @@ export default function Callback() {
           expired: false
         };
 
-        sessionStorage.setItem("portal_user", JSON.stringify(portalUser));
+        // Keep portal session shared across tabs.
+        localStorage.setItem("portal_user", JSON.stringify(portalUser));
+        sessionStorage.removeItem("portal_user");
         window.location.replace("/?mode=portal");
       } catch (e) {
         console.error("Callback error:", e);
