@@ -14,7 +14,21 @@ export default function Dashboard({ user, error, mode }) {
 
   const userName = user?.profile?.name || "N/A";
   const email = user?.profile?.email || "N/A";
-  const issuer = user?.profile?.iss || "N/A";
+  const getIssuer = () => {
+    if (user?.profile?.iss) return user.profile.iss;
+    if (user?.profile?.sub) {
+      try {
+        return new URL(user.profile.sub).origin;
+      } catch {
+        // Fall through to next candidate.
+      }
+    }
+    if (user?.profile?.urls?.custom_domain) {
+      return user.profile.urls.custom_domain;
+    }
+    return "N/A";
+  };
+  const issuer = getIssuer();
   const amrValues = Array.isArray(user?.profile?.amr) ? user.profile.amr : [];
 
   const authModeLabel =
@@ -31,6 +45,14 @@ export default function Dashboard({ user, error, mode }) {
       : amrValues.length > 0
         ? `AMR: ${amrValues.join(", ")}`
         : "From Salesforce internal OIDC flow";
+  const heroSignInText =
+    mode === "portal"
+      ? "Signed in through Experience Cloud"
+      : authModeLabel === "Salesforce Username/Password"
+        ? "Signed in with Salesforce username/password"
+        : authModeLabel === "Federated SSO"
+          ? "Signed in through federated SSO"
+          : "Signed in through Salesforce";
 
   const logoutReactOnly = async () => {
     try {
@@ -40,7 +62,11 @@ export default function Dashboard({ user, error, mode }) {
       sessionStorage.removeItem("portal_user");
       sessionStorage.removeItem("login_mode");
       sessionStorage.removeItem("accounts_cache");
-      window.location.assign(mode === "portal" ? "/?mode=portal" : "/?mode=internal");
+      window.location.assign(
+        mode === "portal"
+          ? "/?mode=portal&logged_out=1"
+          : "/?mode=internal&logged_out=1"
+      );
     } catch (e) {
       console.error(e);
     }
@@ -61,8 +87,9 @@ export default function Dashboard({ user, error, mode }) {
           : internalAuthConfig.postLogoutRedirectUri;
 
       const logoutUrl =
-        `${internalAuthConfig.authority}/secur/logout.jsp` +
-        `?retUrl=${encodeURIComponent(retUrl)}`;
+        mode === "portal"
+          ? portalAuthConfig.logoutUrl
+          : `${internalAuthConfig.authority}/secur/logout.jsp?retUrl=${encodeURIComponent(retUrl)}`;
 
       window.location.assign(logoutUrl);
     } catch (e) {
@@ -116,9 +143,7 @@ export default function Dashboard({ user, error, mode }) {
             <div>
               <div className="dashboard-hero-eyebrow">React + Salesforce SSO POC</div>
               <h1 className="dashboard-hero-title">Welcome, {userName}</h1>
-              <p className="dashboard-hero-subtitle">
-                Signed in through Salesforce with Google SSO
-              </p>
+              <p className="dashboard-hero-subtitle">{heroSignInText}</p>
             </div>
 
             <div className="dashboard-hero-actions">
