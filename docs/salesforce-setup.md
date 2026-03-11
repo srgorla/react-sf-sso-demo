@@ -10,6 +10,8 @@ Configure Salesforce so this app can authenticate users in two ways:
 - Experience Cloud site created and published
 - Access to Setup for Connected Apps, Auth Providers, and OAuth settings
 - Local app callback URL available (default in repo: `http://localhost:5173/callback`)
+- Local env file configured from `.env.example`:
+  - `cp .env.example .env.local`
 
 ## 1) Create Connected Apps
 Create two connected apps if you want separate client IDs per mode (recommended), or one app if policy allows.
@@ -25,15 +27,16 @@ For each connected app:
    - `id`
 4. Save and note Consumer Key (client ID).
 
-Map resulting client IDs to:
-- `src/auth/internalAuth.js` -> `internalAuthConfig.clientId`
-- `src/auth/portalAuth.js` -> `portalAuthConfig.clientId`
+Map resulting values to `.env.local`:
+- `VITE_SF_INTERNAL_CLIENT_ID`
+- `VITE_SF_PORTAL_CLIENT_ID`
 
 ## 2) Internal Mode Configuration
-Update `src/auth/internalAuth.js`:
-- `authority`: your Salesforce My Domain base URL
-- `redirectUri`: local callback URL
-- `postLogoutRedirectUri`: local app URL for internal mode
+Update `.env.local`:
+- `VITE_SF_INTERNAL_AUTHORITY`: your Salesforce My Domain base URL
+- `VITE_APP_REDIRECT_URI`: local callback URL
+- `VITE_INTERNAL_POST_LOGOUT_REDIRECT_URI`: local app URL for internal mode
+- `VITE_SF_INTERNAL_SCOPE`: internal requested scopes
 
 In Salesforce My Domain Authentication Configuration:
 - Enable the login methods you want users to choose from (for example Salesforce username/password and one or more SSO options).
@@ -47,14 +50,14 @@ In Salesforce Experience Cloud:
 1. Configure the Auth Provider used by the site login (for example Google).
 2. Copy the generated auth init URL from the site/provider setup.
 
-Update `src/auth/portalAuth.js`:
-- `oauthInitUrl`: exact site OAuth authorize URL from Salesforce (including the correct Experience Cloud site path), e.g. `/mylwrvforcesite/services/oauth2/authorize`
-- `scope`: OAuth scopes to request (start with `openid profile email`; add `api` only if your Connected App allows it)
-- `appendStandardOauthParams`: set to `true` when using `/services/oauth2/authorize`
-- `tokenUrl`: Salesforce token endpoint
-- `redirectUri`: local callback URL
-- `postLogoutRedirectUri`: local app URL for portal mode
-- `logoutUrl`: Experience Cloud site logout endpoint, e.g. `/mylwrvforcesite/secur/logout.jsp`
+Update `.env.local`:
+- `VITE_SF_PORTAL_OAUTH_INIT_URL`: exact site OAuth authorize URL from Salesforce (including the correct Experience Cloud site path), e.g. `/customer/services/oauth2/authorize`
+- `VITE_SF_PORTAL_SCOPE`: OAuth scopes to request (start with `openid profile email`; add `api` only if your Connected App allows it)
+- `VITE_SF_PORTAL_APPEND_STANDARD_PARAMS`: set to `true` when using `/services/oauth2/authorize`
+- `VITE_SF_PORTAL_TOKEN_URL`: Salesforce token endpoint
+- `VITE_APP_REDIRECT_URI`: local callback URL
+- `VITE_PORTAL_POST_LOGOUT_REDIRECT_URI`: local app URL for portal mode
+- `VITE_SF_PORTAL_LOGOUT_URL`: Experience Cloud site logout endpoint, e.g. `/customer/secur/logout.jsp`
   - For portal mode, prefer site logout without external `retUrl` when testing on localhost to avoid Experience Cloud "Invalid Page Redirection" blocks.
 
 Expected endpoint shape:
@@ -83,6 +86,7 @@ Run local app and validate:
 
 ## Security Notes
 - Do not commit production client secrets.
+- Do not place OAuth client secrets in frontend `VITE_*` env vars; they are bundled to the browser.
 - Keep this demo on localhost-only credentials where possible.
-- Move client IDs and URLs to environment variables before production use.
+- Keep `client_secret` on a backend token-exchange service if required by policy.
 - This app now uses `localStorage` for cross-tab session reuse; clear storage on shared machines and keep token lifetimes appropriately short.

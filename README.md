@@ -22,11 +22,15 @@ This app supports two sign-in modes:
    ```bash
    npm install
    ```
-2. Start dev server:
+2. Configure environment:
+   ```bash
+   cp .env.example .env.local
+   ```
+3. Start dev server:
    ```bash
    npm run dev
    ```
-3. Open:
+4. Open:
    - Internal mode: `http://localhost:5173/?mode=internal`
    - Portal mode: `http://localhost:5173/?mode=portal`
 
@@ -51,4 +55,5 @@ This app supports two sign-in modes:
 ## Important Notes
 - Keep this as a **single repo** for app + docs.
 - Do not commit production secrets.
-- Current auth values are hardcoded for demo; move to environment variables for production.
+- This app reads auth settings from `VITE_*` env vars (see `.env.example`).
+- Do not put OAuth client secrets in frontend `VITE_*` vars; Vite exposes them to the browser bundle.

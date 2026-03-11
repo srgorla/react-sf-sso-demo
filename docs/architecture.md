@@ -37,6 +37,7 @@ The app then displays user identity claims and uses the access token to call Sal
 - `src/pages/Dashboard.jsx`: profile rendering, logout, and Salesforce data demo
 - `src/auth/internalAuth.js`: internal OIDC user manager config
 - `src/auth/portalAuth.js`: portal auth constants/endpoints
+- `.env.example`: environment variable template for org-specific auth settings
 
 ## Session Model
 - Storage:
@@ -64,8 +65,8 @@ Dashboard issues a Salesforce REST query using the returned access token:
 - REST base URL is taken from `user.profile.urls.rest` with API version replacement.
 
 ## Current Technical Debt
-- Auth configuration values are hardcoded in source files.
-- Portal callback flow is manual and does not implement a full PKCE/state workflow.
+- Frontend-only portal callback/token exchange can be limited by org CORS/policy and is better handled via backend.
+- Portal callback flow is manual (no backend proxy), though PKCE/state are now implemented.
 - No explicit automated tests for auth callback branches.
 
-Recommended next step is migrating auth config to `.env` variables and adding callback flow tests.
+Recommended next step is adding callback flow tests and (optionally) a backend token-exchange endpoint.
