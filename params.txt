@@ -1,10 +1,16 @@
-VITE_APP_REDIRECT_URI=http://localhost:5173/callback
+# Optional: when omitted, defaults to <current-origin>/callback
+# VITE_APP_REDIRECT_URI=http://localhost:5173/callback
+
+VITE_DEV_HOST=0.0.0.0
+VITE_DEV_PORT=5173
+VITE_ALLOWED_HOSTS=
 
 # Internal (Okta-enabled Salesforce org)
 VITE_SF_INTERNAL_AUTHORITY=https://<your-my-domain>.my.salesforce.com
 VITE_SF_INTERNAL_CLIENT_ID=3MVG9xOVC9woke_zsyP5rYAMbb5rtjiADRedJoAOS23EJv6Y7oJjtnjAbmq3wVVsLj.iIlvBx6J.nuyNPHE_s
 VITE_SF_INTERNAL_SCOPE=openid profile email api id
-VITE_INTERNAL_POST_LOGOUT_REDIRECT_URI=http://localhost:5173/?mode=internal
+# Optional: defaults to <current-origin>/?mode=internal
+# VITE_INTERNAL_POST_LOGOUT_REDIRECT_URI=http://localhost:5173/?mode=internal
 
 # Portal (Experience Cloud)
 VITE_SF_PORTAL_CLIENT_ID=3MVG9xOVC9woke_zsyP5rYAMbb5rtjiADRedJoAOS23EJv6Y7oJjtnjAbmq3wVVsLj.iIlvBx6J.nuyNPHE_s
@@ -13,7 +19,8 @@ VITE_SF_PORTAL_OAUTH_INIT_URL=https://my-uat.earlywarning.com/customer/services/
 VITE_SF_PORTAL_APPEND_STANDARD_PARAMS=true
 VITE_SF_PORTAL_TOKEN_URL=https://my-uat.earlywarning.com/customer/services/oauth2/token
 VITE_SF_PORTAL_LOGOUT_URL=https://my-uat.earlywarning.com/customer/secur/logout.jsp
-VITE_PORTAL_POST_LOGOUT_REDIRECT_URI=http://localhost:5173/?mode=portal
+# Optional: defaults to <current-origin>/?mode=portal
+# VITE_PORTAL_POST_LOGOUT_REDIRECT_URI=http://localhost:5173/?mode=portal
 
 # SECURITY NOTE:
 # Do NOT add OAuth Consumer Secret to VITE_* variables; they are exposed to the browser bundle.

@@ -16,27 +16,30 @@ The app then displays user identity claims and uses the access token to call Sal
 ## Runtime Flow
 1. User lands on `/`.
 2. App resolves mode from querystring (`mode=portal` or default `internal`).
-3. For `internal` mode:
+3. The app derives its default callback and post-logout URLs from `window.location.origin`, so the same build can run on localhost or a tunnel URL such as ngrok without code changes.
+4. For `internal` mode:
    - App checks existing user via `internalUserManager.getUser()`.
    - If not authenticated, redirects with `signinRedirect()` and lets Salesforce present configured login choices (for example username/password or SSO provider).
-4. For `portal` mode:
+5. For `portal` mode:
    - App checks `localStorage.portal_user`.
    - If absent, redirects browser to configured Experience Cloud auth init URL.
    - Current repo behavior uses Experience Cloud `/services/oauth2/authorize` and appends OAuth + PKCE params (`client_id`, `redirect_uri`, `response_type=code`, `code_challenge`, `code_challenge_method=S256`, `state`).
    - `scope` is only sent when explicitly configured in `portalAuthConfig.scope` to avoid connected-app scope mismatches.
-5. Salesforce redirects to `/callback` with auth response.
-6. Callback behavior:
+6. Salesforce redirects to `/callback` with auth response.
+7. Callback behavior:
    - `internal`: handled by `signinRedirectCallback()`.
    - `portal`: code is exchanged at Salesforce token endpoint (with PKCE verifier). Callback tries configured org token URL first, then Experience Cloud-derived token URLs when available.
    - `portal`: user profile is fetched from returned identity/userinfo URLs with endpoint fallback.
-7. App stores long-lived user session data in `localStorage` and renders `Dashboard`.
+8. App stores long-lived user session data in `localStorage` and renders `Dashboard`.
 
 ## Key Files
+- `vite.config.js`: Vite dev server host/port/allowed host overrides for localhost and tunnel access
 - `src/App.jsx`: mode selection + initial redirect logic
 - `src/pages/Callback.jsx`: callback completion logic for both modes
 - `src/pages/Dashboard.jsx`: profile rendering, logout, and Salesforce data demo
 - `src/auth/internalAuth.js`: internal OIDC user manager config
 - `src/auth/portalAuth.js`: portal auth constants/endpoints
+- `src/auth/appUrls.js`: runtime app-origin helpers for callback/logout defaults
 - `.env.example`: environment variable template for org-specific auth settings
 
 ## Session Model

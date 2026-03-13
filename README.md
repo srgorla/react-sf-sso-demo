@@ -34,6 +34,16 @@ This app supports two sign-in modes:
    - Internal mode: `http://localhost:5173/?mode=internal`
    - Portal mode: `http://localhost:5173/?mode=portal`
 
+For ngrok or another tunnel:
+- Set `VITE_ALLOWED_HOSTS=<your-public-hostname>` in `.env.ngrok` and run `npm run dev:ngrok`.
+- By default, callback and post-logout URLs follow the active browser origin, so the same app build can run on localhost or a tunnel URL. Salesforce Connected App callback URLs still need to match the active public URL exactly.
+
+## Environment Modes
+- `.env.local`: shared local/private Salesforce settings
+- `.env.ngrok`: tunnel-only Vite host overrides
+- `npm run dev:local`: start normal local development
+- `npm run dev:ngrok`: start Vite in `ngrok` mode so `.env.ngrok` is loaded
+
 ## Scripts
 - `npm run dev` start dev server
 - `npm run build` production build

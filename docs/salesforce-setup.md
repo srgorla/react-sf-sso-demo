@@ -9,7 +9,7 @@ Configure Salesforce so this app can authenticate users in two ways:
 - A Salesforce org with My Domain enabled
 - Experience Cloud site created and published
 - Access to Setup for Connected Apps, Auth Providers, and OAuth settings
-- Local app callback URL available (default in repo: `http://localhost:5173/callback`)
+- Local or public app callback URL available
 - Local env file configured from `.env.example`:
   - `cp .env.example .env.local`
 
@@ -18,7 +18,9 @@ Create two connected apps if you want separate client IDs per mode (recommended)
 
 For each connected app:
 1. Enable OAuth settings.
-2. Callback URL: `http://localhost:5173/callback`
+2. Callback URL: exact app callback URL, for example:
+   - Local Vite: `http://localhost:5173/callback`
+   - ngrok: `https://<your-ngrok-subdomain>.ngrok-free.app/callback`
 3. Selected OAuth scopes should include:
    - `openid`
    - `profile`
@@ -34,9 +36,11 @@ Map resulting values to `.env.local`:
 ## 2) Internal Mode Configuration
 Update `.env.local`:
 - `VITE_SF_INTERNAL_AUTHORITY`: your Salesforce My Domain base URL
-- `VITE_APP_REDIRECT_URI`: local callback URL
-- `VITE_INTERNAL_POST_LOGOUT_REDIRECT_URI`: local app URL for internal mode
+- `VITE_APP_REDIRECT_URI`: optional fixed callback URL override
+- `VITE_INTERNAL_POST_LOGOUT_REDIRECT_URI`: optional fixed app URL for internal mode logout
 - `VITE_SF_INTERNAL_SCOPE`: internal requested scopes
+
+If `VITE_APP_REDIRECT_URI` and the post-logout URL override are omitted, the app defaults them from the current browser origin. That means `http://localhost:5173` and an ngrok URL can use the same build, but Salesforce Connected App callback settings must still match the active public URL exactly.
 
 In Salesforce My Domain Authentication Configuration:
 - Enable the login methods you want users to choose from (for example Salesforce username/password and one or more SSO options).
@@ -55,8 +59,8 @@ Update `.env.local`:
 - `VITE_SF_PORTAL_SCOPE`: OAuth scopes to request (start with `openid profile email`; add `api` only if your Connected App allows it)
 - `VITE_SF_PORTAL_APPEND_STANDARD_PARAMS`: set to `true` when using `/services/oauth2/authorize`
 - `VITE_SF_PORTAL_TOKEN_URL`: Salesforce token endpoint
-- `VITE_APP_REDIRECT_URI`: local callback URL
-- `VITE_PORTAL_POST_LOGOUT_REDIRECT_URI`: local app URL for portal mode
+- `VITE_APP_REDIRECT_URI`: optional fixed callback URL override
+- `VITE_PORTAL_POST_LOGOUT_REDIRECT_URI`: optional fixed app URL for portal mode logout
 - `VITE_SF_PORTAL_LOGOUT_URL`: Experience Cloud site logout endpoint, e.g. `/customer/secur/logout.jsp`
   - For portal mode, prefer site logout without external `retUrl` when testing on localhost to avoid Experience Cloud "Invalid Page Redirection" blocks.
 
@@ -66,9 +70,13 @@ Expected endpoint shape:
 
 ## 4) Redirect URI and CORS Checks
 Verify in Salesforce:
-- Connected App callback URL exactly matches `http://localhost:5173/callback`
+- Connected App callback URL exactly matches the URL your users will hit, including ngrok hostname when tunneling
 - CORS/allowlist policy permits local development origin if required by org policy
 - Connected App policy aligns with PKCE-required flows (this app now sends `code_challenge` on authorize and `code_verifier` on token exchange)
+
+For ngrok/Vite local development, update `.env.local` with the tunnel hostname if Vite blocks the request:
+- `VITE_ALLOWED_HOSTS=<your-ngrok-subdomain>.ngrok-free.app`
+- Start Vite normally with `npm run dev`
 
 ## 5) Test Matrix
 Run local app and validate:

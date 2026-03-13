@@ -1,4 +1,5 @@
 import { UserManager, WebStorageStateStore } from "oidc-client-ts";
+import { buildAppUrl } from "./appUrls";
 
 const env = import.meta.env;
 
@@ -9,10 +10,10 @@ export const internalAuthConfig = {
   authority:
     env.VITE_SF_INTERNAL_AUTHORITY ||
     "https://orgfarm-6f61b5a2b9-dev-ed.develop.my.salesforce.com",
-  redirectUri: env.VITE_APP_REDIRECT_URI || "http://localhost:5173/callback",
+  redirectUri: env.VITE_APP_REDIRECT_URI || buildAppUrl("/callback"),
   postLogoutRedirectUri:
     env.VITE_INTERNAL_POST_LOGOUT_REDIRECT_URI ||
-    "http://localhost:5173/?mode=internal",
+    buildAppUrl("/?mode=internal"),
   scope: env.VITE_SF_INTERNAL_SCOPE || "openid profile email api id"
 };
 
