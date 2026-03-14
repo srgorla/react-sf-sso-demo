@@ -29,12 +29,12 @@ For each connected app:
    - `id`
 4. Save and note Consumer Key (client ID).
 
-Map resulting values to `.env.local`:
+Map resulting values to your active env mode file, for example `.env.uat.local` or `.env.agentforce.local`:
 - `VITE_SF_INTERNAL_CLIENT_ID`
 - `VITE_SF_PORTAL_CLIENT_ID`
 
 ## 2) Internal Mode Configuration
-Update `.env.local`:
+Update your active env mode file:
 - `VITE_SF_INTERNAL_AUTHORITY`: your Salesforce My Domain base URL
 - `VITE_APP_REDIRECT_URI`: optional fixed callback URL override
 - `VITE_INTERNAL_POST_LOGOUT_REDIRECT_URI`: optional fixed app URL for internal mode logout
@@ -54,7 +54,7 @@ In Salesforce Experience Cloud:
 1. Configure the Auth Provider used by the site login (for example Google).
 2. Copy the generated auth init URL from the site/provider setup.
 
-Update `.env.local`:
+Update your active env mode file:
 - `VITE_SF_PORTAL_OAUTH_INIT_URL`: exact site OAuth authorize URL from Salesforce (including the correct Experience Cloud site path), e.g. `/customer/services/oauth2/authorize`
 - `VITE_SF_PORTAL_SCOPE`: OAuth scopes to request (start with `openid profile email`; add `api` only if your Connected App allows it)
 - `VITE_SF_PORTAL_APPEND_STANDARD_PARAMS`: set to `true` when using `/services/oauth2/authorize`
@@ -74,9 +74,9 @@ Verify in Salesforce:
 - CORS/allowlist policy permits local development origin if required by org policy
 - Connected App policy aligns with PKCE-required flows (this app now sends `code_challenge` on authorize and `code_verifier` on token exchange)
 
-For ngrok/Vite local development, update `.env.local` with the tunnel hostname if Vite blocks the request:
+For ngrok/Vite local development, update the active env mode file with the tunnel hostname if Vite blocks the request:
 - `VITE_ALLOWED_HOSTS=<your-ngrok-subdomain>.ngrok-free.app`
-- Start Vite normally with `npm run dev`
+- Start Vite with the matching mode, for example `npm run dev:uat` or `npm run dev:agentforce`
 
 ## 5) Test Matrix
 Run local app and validate:
