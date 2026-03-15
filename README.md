@@ -22,13 +22,35 @@ This app supports two sign-in modes:
    ```bash
    npm install
    ```
-2. Start dev server:
+2. Create an org-specific local env file from `.env.example`:
    ```bash
-   npm run dev
+   cp .env.example .env.uat.local
    ```
-3. Open:
+   or
+   ```bash
+   cp .env.example .env.agentforce.local
+   ```
+3. Start the matching dev server:
+   ```bash
+   npm run dev:uat
+   ```
+4. Open:
    - Internal mode: `http://localhost:5173/?mode=internal`
    - Portal mode: `http://localhost:5173/?mode=portal`
+
+For ngrok or another tunnel:
+- Put the org-specific tunnel hostname in the matching mode-local file, for example `.env.uat.local` or `.env.agentforce.local`, then run `npm run dev:uat` or `npm run dev:agentforce`.
+- By default, callback and post-logout URLs follow the active browser origin, so the same app build can run on localhost or a tunnel URL. Salesforce Connected App callback URLs still need to match the active public URL exactly.
+
+## Environment Modes
+- `.env.local`: shared fallback values only
+- `.env.uat.local`: UAT Salesforce + tunnel settings
+- `.env.agentforce.local`: Agentforce Salesforce + tunnel settings
+- `npm run dev`: start Vite with default env loading
+- `npm run dev:local`: start normal local development
+- `npm run dev:uat`: start Vite in `uat` mode
+- `npm run dev:agentforce`: start Vite in `agentforce` mode
+- `npm run dev:ngrok`: legacy generic tunnel mode using `.env.ngrok`
 
 ## Scripts
 - `npm run dev` start dev server
@@ -51,4 +73,6 @@ This app supports two sign-in modes:
 ## Important Notes
 - Keep this as a **single repo** for app + docs.
 - Do not commit production secrets.
-- Current auth values are hardcoded for demo; move to environment variables for production.
+- This app reads auth settings from `VITE_*` env vars (see `.env.example`).
+- Do not put OAuth client secrets in frontend `VITE_*` vars; Vite exposes them to the browser bundle.
+- For portal mode, use the Experience Cloud `/services/oauth2/authorize` endpoint in `VITE_SF_PORTAL_OAUTH_INIT_URL`.

@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "vite",
+    "dev:uat": "vite --mode uat",
+    "dev:agentforce": "vite --mode agentforce",
+    "dev:ngrok": "vite --mode ngrok",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

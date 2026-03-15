@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { internalUserManager } from "../auth/internalAuth";
+import { internalAuthConfig } from "../auth/internalAuth";
 import { portalAuthConfig } from "../auth/portalAuth";
 import {
   PORTAL_AUTH_STATE_KEY,
   PORTAL_PKCE_VERIFIER_KEY
 } from "../auth/sessionKeys";
+
+const getAppModeUrl = (mode) => {
+  const redirectSource =
+    mode === "portal" ? portalAuthConfig.redirectUri : internalAuthConfig.redirectUri;
+  const appOrigin = new URL(redirectSource).origin;
+  return `${appOrigin}/?mode=${mode}`;
+};
 
 export default function Callback() {
   const [message, setMessage] = useState("Completing sign-in...");
@@ -20,7 +28,7 @@ export default function Callback() {
 
         if (loginMode !== "portal") {
           await internalUserManager.signinRedirectCallback();
-          window.location.replace("/?mode=internal");
+          window.location.replace(getAppModeUrl("internal"));
           return;
         }
 
@@ -57,7 +65,6 @@ export default function Callback() {
             const communityUrl = new URL(communityUrlRaw);
             const sitePath = communityUrl.pathname.replace(/\/$/, "");
             tokenUrls.push(`${communityUrl.origin}${sitePath}/services/oauth2/token`);
-            tokenUrls.push(`${communityUrl.origin}/services/oauth2/token`);
           } catch {
             // Ignore malformed community URL and continue with configured token URL.
           }
@@ -66,7 +73,7 @@ export default function Callback() {
         const uniqueTokenUrls = [...new Set(tokenUrls)];
         let tokenResult = null;
         let successfulTokenUrl = "";
-        let lastTokenError = "";
+        const tokenErrors = [];
 
         for (const tokenUrl of uniqueTokenUrls) {
           try {
@@ -80,7 +87,7 @@ export default function Callback() {
 
             const tokenText = await tokenResponse.text();
             if (!tokenResponse.ok) {
-              lastTokenError = `${tokenUrl}: ${tokenText || `HTTP ${tokenResponse.status}`}`;
+              tokenErrors.push(`${tokenUrl}: ${tokenText || `HTTP ${tokenResponse.status}`}`);
               continue;
             }
 
@@ -88,12 +95,14 @@ export default function Callback() {
             successfulTokenUrl = tokenUrl;
             break;
           } catch (err) {
-            lastTokenError = `${tokenUrl}: ${err?.message || "Network error"}`;
+            tokenErrors.push(`${tokenUrl}: ${err?.message || "Network error"}`);
           }
         }
 
         if (!tokenResult) {
-          throw new Error(`Portal token exchange failed (${lastTokenError || "Unknown error"})`);
+          throw new Error(
+            `Portal token exchange failed (${tokenErrors.join(" | ") || "Unknown error"})`
+          );
         }
 
         const profileUrls = [];
@@ -159,7 +168,7 @@ export default function Callback() {
         sessionStorage.removeItem("portal_user");
         sessionStorage.removeItem(PORTAL_PKCE_VERIFIER_KEY);
         sessionStorage.removeItem(PORTAL_AUTH_STATE_KEY);
-        window.location.replace("/?mode=portal");
+        window.location.replace(getAppModeUrl("portal"));
       } catch (e) {
         console.error("Callback error:", e);
         sessionStorage.removeItem(PORTAL_PKCE_VERIFIER_KEY);

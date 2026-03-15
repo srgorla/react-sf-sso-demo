@@ -1,10 +1,11 @@
 import { UserManager, WebStorageStateStore } from "oidc-client-ts";
+import { buildAppUrl } from "./appUrls";
 
 const clientId =
   "3MVG9dAEux2v1sLvyGcPikl9WBWIxXVvW1AVHRGGx2MWY9iOyLjI9VmPMKmDwRhEY7tI9uoKqh2OFw5wGk0By";
 
-const redirectUri = "http://localhost:5173/callback";
-const postLogoutRedirectUri = "http://localhost:5173/";
+const redirectUri = buildAppUrl("/callback");
+const postLogoutRedirectUri = buildAppUrl("/");
 
 export const authConfig = {
   clientId,
