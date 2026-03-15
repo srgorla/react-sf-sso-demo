@@ -41,6 +41,7 @@ The app then displays user identity claims and uses the access token to call Sal
 - `src/auth/portalAuth.js`: portal auth constants/endpoints
 - `src/auth/appUrls.js`: runtime app-origin helpers for callback/logout defaults
 - `.env.example`: environment variable template for org-specific auth settings
+- `.env.uat.local` / `.env.agentforce.local`: primary local env files for the supported Salesforce org modes
 
 ## Session Model
 - Storage:

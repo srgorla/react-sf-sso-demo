@@ -10,8 +10,9 @@ Configure Salesforce so this app can authenticate users in two ways:
 - Experience Cloud site created and published
 - Access to Setup for Connected Apps, Auth Providers, and OAuth settings
 - Local or public app callback URL available
-- Local env file configured from `.env.example`:
-  - `cp .env.example .env.local`
+- Org-specific local env file configured from `.env.example`:
+  - `cp .env.example .env.uat.local`
+  - or `cp .env.example .env.agentforce.local`
 
 ## 1) Create Connected Apps
 Create two connected apps if you want separate client IDs per mode (recommended), or one app if policy allows.
@@ -52,7 +53,7 @@ Example authority shape:
 ## 3) Experience Cloud (Portal) Mode Configuration
 In Salesforce Experience Cloud:
 1. Configure the Auth Provider used by the site login (for example Google).
-2. Copy the generated auth init URL from the site/provider setup.
+2. Use the site's OAuth authorize URL, not the provider-specific `/services/auth/oauth/<provider>` URL, because the app appends OAuth + PKCE params itself.
 
 Update your active env mode file:
 - `VITE_SF_PORTAL_OAUTH_INIT_URL`: exact site OAuth authorize URL from Salesforce (including the correct Experience Cloud site path), e.g. `/customer/services/oauth2/authorize`
@@ -68,6 +69,9 @@ Expected endpoint shape:
 - Auth init: `https://<site-domain>/<site-path>/services/oauth2/authorize`
 - Token: `https://<my-domain>.my.salesforce.com/services/oauth2/token`
 
+Common failure:
+- `AuthorizationError?ErrorCode=Bad_Scopes` usually means the app is pointing at `/services/auth/oauth/<provider>` while still sending standard OAuth scopes and PKCE params, or the Connected App is missing requested scopes.
+
 ## 4) Redirect URI and CORS Checks
 Verify in Salesforce:
 - Connected App callback URL exactly matches the URL your users will hit, including ngrok hostname when tunneling
@@ -77,6 +81,7 @@ Verify in Salesforce:
 For ngrok/Vite local development, update the active env mode file with the tunnel hostname if Vite blocks the request:
 - `VITE_ALLOWED_HOSTS=<your-ngrok-subdomain>.ngrok-free.app`
 - Start Vite with the matching mode, for example `npm run dev:uat` or `npm run dev:agentforce`
+- Restart Vite after changing env files; `allowedHosts` is only reloaded on server restart.
 
 ## 5) Test Matrix
 Run local app and validate:

@@ -22,13 +22,17 @@ This app supports two sign-in modes:
    ```bash
    npm install
    ```
-2. Configure environment:
+2. Create an org-specific local env file from `.env.example`:
    ```bash
-   cp .env.example .env.local
+   cp .env.example .env.uat.local
    ```
-3. Start dev server:
+   or
    ```bash
-   npm run dev
+   cp .env.example .env.agentforce.local
+   ```
+3. Start the matching dev server:
+   ```bash
+   npm run dev:uat
    ```
 4. Open:
    - Internal mode: `http://localhost:5173/?mode=internal`
@@ -42,10 +46,11 @@ For ngrok or another tunnel:
 - `.env.local`: shared fallback values only
 - `.env.uat.local`: UAT Salesforce + tunnel settings
 - `.env.agentforce.local`: Agentforce Salesforce + tunnel settings
+- `npm run dev`: start Vite with default env loading
 - `npm run dev:local`: start normal local development
 - `npm run dev:uat`: start Vite in `uat` mode
 - `npm run dev:agentforce`: start Vite in `agentforce` mode
-- `npm run dev:ngrok`: start Vite in `ngrok` mode so `.env.ngrok` is loaded
+- `npm run dev:ngrok`: legacy generic tunnel mode using `.env.ngrok`
 
 ## Scripts
 - `npm run dev` start dev server
@@ -70,3 +75,4 @@ For ngrok or another tunnel:
 - Do not commit production secrets.
 - This app reads auth settings from `VITE_*` env vars (see `.env.example`).
 - Do not put OAuth client secrets in frontend `VITE_*` vars; Vite exposes them to the browser bundle.
+- For portal mode, use the Experience Cloud `/services/oauth2/authorize` endpoint in `VITE_SF_PORTAL_OAUTH_INIT_URL`.
