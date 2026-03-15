@@ -27,6 +27,7 @@ export const portalAuthConfig = {
     env.VITE_SF_PORTAL_APPEND_STANDARD_PARAMS,
     true
   ),
+  validateState: parseBooleanEnv(env.VITE_SF_PORTAL_VALIDATE_STATE, true),
 
   // Token exchange still goes to the Salesforce token endpoint
   tokenUrl:

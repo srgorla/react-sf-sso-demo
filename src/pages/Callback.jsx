@@ -46,7 +46,7 @@ export default function Callback() {
           throw new Error("Missing PKCE verifier in browser session");
         }
 
-        if (expectedState && state !== expectedState) {
+        if (portalAuthConfig.validateState && expectedState && state !== expectedState) {
           throw new Error("Portal login state validation failed");
         }
 

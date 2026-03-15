@@ -22,6 +22,7 @@ For each connected app:
 2. Callback URL: exact app callback URL, for example:
    - Local Vite: `http://localhost:5173/callback`
    - ngrok: `https://<your-ngrok-subdomain>.ngrok-free.app/callback`
+   - Vercel: `https://<your-vercel-app>.vercel.app/callback`
 3. Selected OAuth scopes should include:
    - `openid`
    - `profile`
@@ -34,6 +35,8 @@ Map resulting values to your active env mode file, for example `.env.uat.local` 
 - `VITE_SF_INTERNAL_CLIENT_ID`
 - `VITE_SF_PORTAL_CLIENT_ID`
 
+If your external Connected App supports multiple callback URLs, you can register localhost, ngrok, and Vercel in the same app and let the React app send the matching redirect URI based on the active browser origin. If policy or team ownership makes that awkward, use separate Connected Apps per environment instead.
+
 ## 2) Internal Mode Configuration
 Update your active env mode file:
 - `VITE_SF_INTERNAL_AUTHORITY`: your Salesforce My Domain base URL
@@ -42,6 +45,10 @@ Update your active env mode file:
 - `VITE_SF_INTERNAL_SCOPE`: internal requested scopes
 
 If `VITE_APP_REDIRECT_URI` and the post-logout URL override are omitted, the app defaults them from the current browser origin. That means `http://localhost:5173` and an ngrok URL can use the same build, but Salesforce Connected App callback settings must still match the active public URL exactly.
+
+For Vercel, you can keep using current-origin defaults or set fixed production URLs in the Vercel project environment:
+- `VITE_APP_REDIRECT_URI=https://<your-vercel-app>.vercel.app/callback`
+- `VITE_INTERNAL_POST_LOGOUT_REDIRECT_URI=https://<your-vercel-app>.vercel.app/?mode=internal`
 
 In Salesforce My Domain Authentication Configuration:
 - Enable the login methods you want users to choose from (for example Salesforce username/password and one or more SSO options).
@@ -59,11 +66,16 @@ Update your active env mode file:
 - `VITE_SF_PORTAL_OAUTH_INIT_URL`: exact site OAuth authorize URL from Salesforce (including the correct Experience Cloud site path), e.g. `/customer/services/oauth2/authorize`
 - `VITE_SF_PORTAL_SCOPE`: OAuth scopes to request (start with `openid profile email`; add `api` only if your Connected App allows it)
 - `VITE_SF_PORTAL_APPEND_STANDARD_PARAMS`: set to `true` when using `/services/oauth2/authorize`
+- `VITE_SF_PORTAL_VALIDATE_STATE`: keep `true` unless you have a temporary org-specific reason to bypass portal `state` checking during debugging
 - `VITE_SF_PORTAL_TOKEN_URL`: Salesforce token endpoint
 - `VITE_APP_REDIRECT_URI`: optional fixed callback URL override
 - `VITE_PORTAL_POST_LOGOUT_REDIRECT_URI`: optional fixed app URL for portal mode logout
 - `VITE_SF_PORTAL_LOGOUT_URL`: Experience Cloud site logout endpoint, e.g. `/customer/secur/logout.jsp`
   - For portal mode, prefer site logout without external `retUrl` when testing on localhost to avoid Experience Cloud "Invalid Page Redirection" blocks.
+
+For Vercel, optional fixed overrides are:
+- `VITE_APP_REDIRECT_URI=https://<your-vercel-app>.vercel.app/callback`
+- `VITE_PORTAL_POST_LOGOUT_REDIRECT_URI=https://<your-vercel-app>.vercel.app/?mode=portal`
 
 Expected endpoint shape:
 - Auth init: `https://<site-domain>/<site-path>/services/oauth2/authorize`
@@ -82,6 +94,19 @@ For ngrok/Vite local development, update the active env mode file with the tunne
 - `VITE_ALLOWED_HOSTS=<your-ngrok-subdomain>.ngrok-free.app`
 - Start Vite with the matching mode, for example `npm run dev:uat` or `npm run dev:agentforce`
 - Restart Vite after changing env files; `allowedHosts` is only reloaded on server restart.
+
+For Vercel hosted deployment:
+- Add the same `VITE_*` values in the Vercel project settings for the Production environment
+- The current repo uses this Vercel env set for portal flows:
+  - `VITE_SF_PORTAL_CLIENT_ID`
+  - `VITE_SF_PORTAL_SCOPE`
+  - `VITE_SF_PORTAL_OAUTH_INIT_URL`
+  - `VITE_SF_PORTAL_APPEND_STANDARD_PARAMS`
+  - `VITE_SF_PORTAL_VALIDATE_STATE`
+  - `VITE_SF_PORTAL_TOKEN_URL`
+  - `VITE_SF_PORTAL_LOGOUT_URL`
+- Keep preview deployments out of the primary OAuth test path unless you also register their exact callback URLs in Salesforce
+- This repo includes `vercel.json` to rewrite SPA routes such as `/callback`; keep that file in place for hosted deployments using `BrowserRouter`
 
 ## 5) Test Matrix
 Run local app and validate:

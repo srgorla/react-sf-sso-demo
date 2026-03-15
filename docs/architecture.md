@@ -16,7 +16,7 @@ The app then displays user identity claims and uses the access token to call Sal
 ## Runtime Flow
 1. User lands on `/`.
 2. App resolves mode from querystring (`mode=portal` or default `internal`).
-3. The app derives its default callback and post-logout URLs from `window.location.origin`, so the same build can run on localhost or a tunnel URL such as ngrok without code changes.
+3. The app derives its default callback and post-logout URLs from `window.location.origin`, so the same build can run on localhost, a tunnel URL such as ngrok, or a hosted origin such as Vercel without code changes.
 4. For `internal` mode:
    - App checks existing user via `internalUserManager.getUser()`.
    - If not authenticated, redirects with `signinRedirect()` and lets Salesforce present configured login choices (for example username/password or SSO provider).
@@ -42,6 +42,19 @@ The app then displays user identity claims and uses the access token to call Sal
 - `src/auth/appUrls.js`: runtime app-origin helpers for callback/logout defaults
 - `.env.example`: environment variable template for org-specific auth settings
 - `.env.uat.local` / `.env.agentforce.local`: primary local env files for the supported Salesforce org modes
+- `vercel.json`: SPA rewrite for hosted deployments so deep links such as `/callback` resolve to `index.html`
+
+## Supported Origins
+- `http://localhost:5173` for normal local development
+- `https://<ngrok-subdomain>.ngrok-free.app` for public callback testing into the local Vite server
+- `https://<your-project>.vercel.app` (or a custom domain) for stable hosted testing
+
+Because redirect URIs default from the active browser origin, the frontend can support all of those origins simultaneously. The governing constraint is Salesforce configuration: every origin-specific `/callback` URL must be allowlisted in the relevant Connected App, or you must use separate Connected Apps per environment.
+
+## Hosted Deployment Notes
+- Vercel works for this repo without changing auth logic because the app already computes callback and post-logout URLs from the active origin unless fixed `VITE_*` overrides are provided.
+- Hosted SPA routing still needs a platform rewrite for `BrowserRouter`; this repo uses `vercel.json` to rewrite all requests to `index.html` so `/callback` can load directly after Salesforce redirects back.
+- For OAuth testing, prefer one stable Vercel production URL or a custom domain. Vercel preview URLs are not a good default for Salesforce redirect URIs because the exact callback URL must be registered ahead of time.
 
 ## Session Model
 - Storage:
